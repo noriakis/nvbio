@@ -86,6 +86,7 @@ AlignmentData get_anchor_mate(HostOutputBatchPE& batch, const uint32 aln_id)
 {
     const uint32 read_id = batch.read_ids.size() ?
                            batch.read_ids[ aln_id ] : aln_id;
+    batch.alignments[0][aln_id].m_mate = 0;
     const uint32 mate    = batch.alignments[0][aln_id].mate();
 
     return AlignmentData(&batch.alignments[0][aln_id],
@@ -102,6 +103,7 @@ AlignmentData get_opposite_mate(HostOutputBatchPE& batch, const uint32 aln_id)
 {
     const uint32 read_id = batch.read_ids.size() ?
                            batch.read_ids[ aln_id ] : aln_id;
+    batch.alignments[1][aln_id].m_mate = 1;
     const uint32 mate    = batch.alignments[1][aln_id].mate();
 
     return AlignmentData(&batch.alignments[1][aln_id],

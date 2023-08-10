@@ -387,19 +387,19 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
     // fill out read name
     sam_align.qname = alignment.read_name;
 
+    // do not use m_rc flag
     // fill out sequence data
     for(uint32 i = 0; i < alignment.read_len; i++)
     {
         uint8 s;
-
-        if (alignment.aln->m_rc)
-        {
-            nvbio::complement_functor<4> complement;
-            s = complement(alignment.read_data[i]);
-        }
-        else
-            s = alignment.read_data[alignment.read_len - i - 1];
-
+        // if (alignment.aln->m_rc)
+        // {
+        //     nvbio::complement_functor<4> complement;
+        //     s = complement(alignment.read_data[i]);
+        // }
+        // else
+        //     s = alignment.read_data[alignment.read_len - i - 1];
+        s = alignment.read_data[alignment.read_len - i - 1];
         sam_align.seq[i] = dna_to_char(s);
     }
     sam_align.seq[alignment.read_len] = '\0';
@@ -409,11 +409,11 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
     {
         char q;
 
-        if (alignment.aln[MATE_1].m_rc)
-            q = alignment.qual[i];
-        else
-            q = alignment.qual[alignment.read_len - i - 1];
-
+        // if (alignment.aln[MATE_1].m_rc)
+        //     q = alignment.qual[i];
+        // else
+        //     q = alignment.qual[alignment.read_len - i - 1];
+        q = alignment.qual[i];
         sam_align.qual[i] = q + 33;
     }
     sam_align.qual[alignment.read_len] = '\0';
@@ -424,7 +424,20 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
     // if we didn't map, or mapped with low quality, output an unmapped alignment and return
     if (!(alignment.aln->is_aligned() || sam_align.mapq < mapq_filter))
     {
-        sam_align.flags = SAM_FLAGS_UNMAPPED;
+    	// do not use reverse strand flag
+	    sam_align.flags  = (alignment.aln->mate() ? SAM_FLAGS_READ_2 : SAM_FLAGS_READ_1);
+        if (alignment_type == PAIRED_END)
+        {
+            NVBIO_CUDA_ASSERT(mate.valid);
+            sam_align.flags |= SAM_FLAGS_PAIRED;
+
+            if (mate.aln->is_concordant())
+                sam_align.flags |= SAM_FLAGS_PROPER_PAIR;
+
+            if (!mate.aln->is_aligned())
+                sam_align.flags |= SAM_FLAGS_MATE_UNMAPPED;
+        }        
+        sam_align.flags |= SAM_FLAGS_UNMAPPED;
         // mark the md string as empty
         sam_align.md_string[0] = '\0';
 
@@ -469,7 +482,7 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
     // fill out the cigar string...
     uint32 computed_cigar_len = generate_cigar_string(sam_align, alignment);
     // ... and make sure it makes (some) sense
-    if (computed_cigar_len != alignment.read_len)
+    if ((computed_cigar_len != alignment.read_len) & (computed_cigar_len != mate.read_len))
     {
         log_error(stderr, "SAM output : cigar length doesn't match read %u (%u != %u)\n",
                   alignment.read_id /* xxxnsubtil: global_read_id */,
