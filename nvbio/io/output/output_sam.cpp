@@ -387,44 +387,30 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
     // fill out read name
     sam_align.qname = alignment.read_name;
 
-    // do not use m_rc flag
-    // fill out sequence data
-    for(uint32 i = 0; i < alignment.read_len; i++)
-    {
-        uint8 s;
-        // if (alignment.aln->m_rc)
-        // {
-        //     nvbio::complement_functor<4> complement;
-        //     s = complement(alignment.read_data[i]);
-        // }
-        // else
-        //     s = alignment.read_data[alignment.read_len - i - 1];
-        s = alignment.read_data[alignment.read_len - i - 1];
-        sam_align.seq[i] = dna_to_char(s);
-    }
-    sam_align.seq[alignment.read_len] = '\0';
-
-    // fill out quality data
-    for(uint32 i = 0; i < alignment.read_len; i++)
-    {
-        char q;
-
-        // if (alignment.aln[MATE_1].m_rc)
-        //     q = alignment.qual[i];
-        // else
-        //     q = alignment.qual[alignment.read_len - i - 1];
-        q = alignment.qual[i];
-        sam_align.qual[i] = q + 33;
-    }
-    sam_align.qual[alignment.read_len] = '\0';
-
     // compute mapping quality
     sam_align.mapq = alignment.mapq;
 
     // if we didn't map, or mapped with low quality, output an unmapped alignment and return
     if (!(alignment.aln->is_aligned() || sam_align.mapq < mapq_filter))
     {
-    	// do not use reverse strand flag
+    	// No use of rc
+	    for(uint32 i = 0; i < alignment.read_len; i++)
+	    {
+	        uint8 s;
+	        s = alignment.read_data[alignment.read_len - i - 1];
+	        sam_align.seq[i] = dna_to_char(s);
+	    }
+	    sam_align.seq[alignment.read_len] = '\0';
+
+	    // fill out quality data
+	    for(uint32 i = 0; i < alignment.read_len; i++)
+	    {
+	        char q;
+	        q = alignment.qual[i];
+	        sam_align.qual[i] = q + 33;
+	    }
+	    sam_align.qual[alignment.read_len] = '\0';
+	    
 	    sam_align.flags  = (alignment.aln->mate() ? SAM_FLAGS_READ_2 : SAM_FLAGS_READ_1);
         if (alignment_type == PAIRED_END)
         {
@@ -446,6 +432,34 @@ uint32 SamOutput::process_one_alignment(const AlignmentData& alignment,
         return 0;
     }
 
+    // fill out sequence data
+    for(uint32 i = 0; i < alignment.read_len; i++)
+    {
+        uint8 s;
+        if (alignment.aln->m_rc)
+        {
+            nvbio::complement_functor<4> complement;
+            s = complement(alignment.read_data[i]);
+        }
+        else
+            s = alignment.read_data[alignment.read_len - i - 1];
+        sam_align.seq[i] = dna_to_char(s);
+    }
+    sam_align.seq[alignment.read_len] = '\0';
+
+    // fill out quality data
+    for(uint32 i = 0; i < alignment.read_len; i++)
+    {
+        char q;
+
+        if (alignment.aln[MATE_1].m_rc)
+            q = alignment.qual[i];
+        else
+            q = alignment.qual[alignment.read_len - i - 1];
+        sam_align.qual[i] = q + 33;
+    }
+    sam_align.qual[alignment.read_len] = '\0';
+    
     // compute alignment flags
     sam_align.flags  = (alignment.aln->mate() ? SAM_FLAGS_READ_2 : SAM_FLAGS_READ_1);
     if (alignment.aln->m_rc)
