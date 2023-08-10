@@ -6,6 +6,14 @@ Change log
  * Fixed typo in nvBowtie (--max-ins) as reported [here](https://github.com/NVlabs/nvbio/pull/36).
  * Make nvBowtie accept FASTA containing multiple sequences (the original repository only reads the first sequence, as reported [here](https://github.com/NVlabs/nvbio/issues/44))
  * For unmapped reads, the SAM flag will be all set to 4, as reported [here](https://groups.google.com/g/nvbio-users/c/is28EEvm2QE). Also, sequences are outputted as reverse complements of the original sequences for all the alignments as reported [here](https://github.com/NVlabs/nvbio/issues/47). I modified SAM output source for the try to output the appropriate flag for unmapped reads (such as 77 and 141), and output the appropriate sequences (**WIP**).
+ 
+ Current implementation outputs SAM flag as follows. The input was the metagenomic reads (subset of `SRR8114009`, by `seqkit sample -p 0.01`), aligned to GRCh38. Note the mate flag is not the same number of the corresponding flag.
+ 
+<p align="center">
+<img src="https://github.com/noriakis/software/blob/main/images/nvbio.png?raw=true" width="800px">
+</p>
+
+ 
 
 nvbio
 =====
