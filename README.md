@@ -5,7 +5,7 @@ Change log
 
  * Fixed typo in nvBowtie (--max-ins) as reported [here](https://github.com/NVlabs/nvbio/pull/36).
  * Make nvBowtie accept FASTA containing multiple sequences (the original repository only reads the first sequence, as reported [here](https://github.com/NVlabs/nvbio/issues/44))
- * For unmapped reads, the SAM flag will be all set to 4, as reported [here](https://groups.google.com/g/nvbio-users/c/is28EEvm2QE). Also, sequences are outputted as reverse complements of the original sequences for all the alignments as reported [here](https://github.com/NVlabs/nvbio/issues/47). I modified SAM output source for the try to output the appropriate flag for unmapped reads (such as 77 and 141), and output the appropriate sequences (**WIP**, reverse strand information is not properly used in aligned reads).
+ * For unmapped reads, the SAM flag will be all set to 4, as reported [here](https://groups.google.com/g/nvbio-users/c/is28EEvm2QE). Also, sequences are outputted as reverse complements of the original sequences for all the alignments as reported [here](https://github.com/NVlabs/nvbio/issues/47). I modified SAM output source for the try to output the appropriate flag for unmapped reads (such as 77 and 141), and output the appropriate sequences (**WIP**).
 
 nvbio
 =====
